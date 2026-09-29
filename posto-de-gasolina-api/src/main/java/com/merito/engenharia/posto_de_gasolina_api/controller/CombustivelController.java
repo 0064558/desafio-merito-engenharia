@@ -50,4 +50,11 @@ public class CombustivelController {
                                                        @Valid @RequestBody CombustivelRequestDto requestDto) {
         return combustivelService.atualizarCombustivel(id, requestDto);
     }
+
+    // Endpoint para excluir um combustível existente pelo ID
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void excluirCombustivel(@PathVariable Long id) {
+        combustivelService.deletarCombustivel(id);
+    }
 }

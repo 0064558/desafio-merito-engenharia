@@ -3,7 +3,9 @@ package com.merito.engenharia.posto_de_gasolina_api.service;
 import com.merito.engenharia.posto_de_gasolina_api.dto.CombustivelRequestDto;
 import com.merito.engenharia.posto_de_gasolina_api.dto.CombustivelResponseDto;
 import com.merito.engenharia.posto_de_gasolina_api.entity.Combustivel;
+import com.merito.engenharia.posto_de_gasolina_api.exception.ConflitoDeNegocioException;
 import com.merito.engenharia.posto_de_gasolina_api.exception.RecursoNaoEncontradoException;
+import com.merito.engenharia.posto_de_gasolina_api.repository.BombaRepository;
 import com.merito.engenharia.posto_de_gasolina_api.repository.CombustivelRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,10 +20,13 @@ import java.util.List;
 public class CombustivelService {
     // Injeção de dependência do repositório de combustíveis
     private final CombustivelRepository combustivelRepository;
+    // Injeção de dependência do repositório de bombas
+    private final BombaRepository bombaRepository;
 
-    // Construtor para injetar o repositório de combustíveis
-    public CombustivelService(CombustivelRepository combustivelRepository) {
+    // Construtor para injetar o repositório de combustíveis e o repositório de bombas
+    public CombustivelService(CombustivelRepository combustivelRepository, BombaRepository bombaRepository) {
         this.combustivelRepository = combustivelRepository;
+        this.bombaRepository = bombaRepository;
     }
 
     // Método para criar um novo combustível
@@ -78,5 +83,23 @@ public class CombustivelService {
 
         // Retorna o DTO de resposta contendo os dados do combustível atualizado
         return new CombustivelResponseDto(combustivel.getId(), combustivel.getNome(), combustivel.getPrecoLitro());
+    }
+
+    // Método para excluir um combustível pelo ID
+    @Transactional
+    public void deletarCombustivel(Long id) {
+        // Recupera o combustível pelo ID do banco de dados
+        Combustivel combustivel = combustivelRepository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException(
+                        "Combustível não encontrado com o ID: " + id));
+
+        // Verifica se há bombas associadas a este combustível
+        if (bombaRepository.existsByCombustivel_Id(id)) {
+            throw new ConflitoDeNegocioException(
+                    "Não é possível excluir o combustível, pois há bombas associadas a ele.");
+        }
+
+        // Remove o combustível do banco de dados
+        combustivelRepository.delete(combustivel);
     }
 }
