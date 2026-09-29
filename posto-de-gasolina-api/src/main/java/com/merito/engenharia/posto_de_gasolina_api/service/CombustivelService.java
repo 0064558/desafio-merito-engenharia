@@ -3,6 +3,7 @@ package com.merito.engenharia.posto_de_gasolina_api.service;
 import com.merito.engenharia.posto_de_gasolina_api.dto.CombustivelRequestDto;
 import com.merito.engenharia.posto_de_gasolina_api.dto.CombustivelResponseDto;
 import com.merito.engenharia.posto_de_gasolina_api.entity.Combustivel;
+import com.merito.engenharia.posto_de_gasolina_api.exception.RecursoNaoEncontradoException;
 import com.merito.engenharia.posto_de_gasolina_api.repository.CombustivelRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,7 +12,7 @@ import java.util.List;
 
 /*
  * Serviço contendo a lógica de negócio para CRIAR, LISTAR, ATUALIZAR e EXCLUIR combustíveis.
- * */
+ */
 
 @Service
 public class CombustivelService {
@@ -52,7 +53,8 @@ public class CombustivelService {
     public CombustivelResponseDto buscarCombustivelPorId(Long id) {
         // Recupera o combustível pelo ID do banco de dados
         Combustivel combustivel = combustivelRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Combustível não encontrado com o ID: " + id));
+                .orElseThrow(() -> new RecursoNaoEncontradoException(
+                        "Combustível não encontrado com o ID: " + id));
 
         // Retorna o DTO de resposta contendo os dados do combustível encontrado
         return new CombustivelResponseDto(combustivel.getId(), combustivel.getNome(), combustivel.getPrecoLitro());
