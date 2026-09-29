@@ -10,8 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 /*
-* Serviço contendo a lógica de negócio para CRIAR, LISTAR, ATUALIZAR e EXCLUIR combustíveis.
-* */
+ * Serviço contendo a lógica de negócio para CRIAR, LISTAR, ATUALIZAR e EXCLUIR combustíveis.
+ * */
 
 @Service
 public class CombustivelService {
@@ -46,5 +46,15 @@ public class CombustivelService {
         return combustiveis.stream()
                 .map(combustivel -> new CombustivelResponseDto(combustivel.getId(), combustivel.getNome(), combustivel.getPrecoLitro()))
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public CombustivelResponseDto buscarCombustivelPorId(Long id) {
+        // Recupera o combustível pelo ID do banco de dados
+        Combustivel combustivel = combustivelRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Combustível não encontrado com o ID: " + id));
+
+        // Retorna o DTO de resposta contendo os dados do combustível encontrado
+        return new CombustivelResponseDto(combustivel.getId(), combustivel.getNome(), combustivel.getPrecoLitro());
     }
 }

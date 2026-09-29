@@ -37,4 +37,10 @@ public class CombustivelController {
     public List<CombustivelResponseDto> listarCombustiveis() {
         return combustivelService.listarCombustiveis();
     }
+
+    // Endpoint para buscar um combustível pelo ID
+    @GetMapping("/{id}")
+    public CombustivelResponseDto buscarCombustivelPorId(@PathVariable Long id) {
+        return combustivelService.buscarCombustivelPorId(id);
+    }
 }
