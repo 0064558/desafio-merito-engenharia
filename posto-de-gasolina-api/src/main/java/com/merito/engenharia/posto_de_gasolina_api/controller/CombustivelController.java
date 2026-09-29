@@ -43,4 +43,11 @@ public class CombustivelController {
     public CombustivelResponseDto buscarCombustivelPorId(@PathVariable Long id) {
         return combustivelService.buscarCombustivelPorId(id);
     }
+
+    // Endpoint para atualizar um combustível existente pelo ID
+    @PutMapping("/{id}")
+    public CombustivelResponseDto atualizarCombustivel(@PathVariable Long id,
+                                                       @Valid @RequestBody CombustivelRequestDto requestDto) {
+        return combustivelService.atualizarCombustivel(id, requestDto);
+    }
 }

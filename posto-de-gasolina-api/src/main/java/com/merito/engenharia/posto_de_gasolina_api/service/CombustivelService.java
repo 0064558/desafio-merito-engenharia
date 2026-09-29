@@ -49,6 +49,7 @@ public class CombustivelService {
                 .toList();
     }
 
+    // Método para buscar um combustível pelo ID
     @Transactional(readOnly = true)
     public CombustivelResponseDto buscarCombustivelPorId(Long id) {
         // Recupera o combustível pelo ID do banco de dados
@@ -57,6 +58,25 @@ public class CombustivelService {
                         "Combustível não encontrado com o ID: " + id));
 
         // Retorna o DTO de resposta contendo os dados do combustível encontrado
+        return new CombustivelResponseDto(combustivel.getId(), combustivel.getNome(), combustivel.getPrecoLitro());
+    }
+
+    // Método para atualizar um combustível existente pelo ID
+    @Transactional
+    public CombustivelResponseDto atualizarCombustivel(Long id, CombustivelRequestDto requestDto) {
+        // Recupera o combustível pelo ID do banco de dados
+        Combustivel combustivel = combustivelRepository.findById(id)
+                .orElseThrow(() -> new RecursoNaoEncontradoException(
+                        "Combustível não encontrado com o ID: " + id));
+
+        // Atualiza os dados do combustível com os valores do DTO de requisição
+        combustivel.setNome(requestDto.nome());
+        combustivel.setPrecoLitro(requestDto.precoLitro());
+
+        // Salva as alterações no banco de dados
+        combustivel = combustivelRepository.save(combustivel);
+
+        // Retorna o DTO de resposta contendo os dados do combustível atualizado
         return new CombustivelResponseDto(combustivel.getId(), combustivel.getNome(), combustivel.getPrecoLitro());
     }
 }
