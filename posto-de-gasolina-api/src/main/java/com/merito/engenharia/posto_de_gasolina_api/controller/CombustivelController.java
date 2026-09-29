@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /*
  * Controlador para gerenciar as operações relacionadas a combustíveis.
  * */
@@ -23,9 +25,16 @@ public class CombustivelController {
         this.combustivelService = combustivelService;
     }
 
+    // Endpoint para criar um novo combustível
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public CombustivelResponseDto criarCombustivel(@Valid @RequestBody CombustivelRequestDto requestDto) {
         return combustivelService.criarCombustivel(requestDto);
+    }
+
+    // Endpoint para listar todos os combustíveis disponíveis
+    @GetMapping
+    public List<CombustivelResponseDto> listarCombustiveis() {
+        return combustivelService.listarCombustiveis();
     }
 }

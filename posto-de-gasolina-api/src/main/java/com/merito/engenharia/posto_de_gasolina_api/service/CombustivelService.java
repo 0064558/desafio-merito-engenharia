@@ -7,6 +7,8 @@ import com.merito.engenharia.posto_de_gasolina_api.repository.CombustivelReposit
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 /*
 * Serviço contendo a lógica de negócio para CRIAR, LISTAR, ATUALIZAR e EXCLUIR combustíveis.
 * */
@@ -21,7 +23,7 @@ public class CombustivelService {
         this.combustivelRepository = combustivelRepository;
     }
 
-    // Método para criar um novo combustível a partir de um DTO de requisição
+    // Método para criar um novo combustível
     @Transactional
     public CombustivelResponseDto criarCombustivel(CombustivelRequestDto requestDto) {
         // Cria uma nova entidade Combustivel a partir do DTO de requisição
@@ -32,5 +34,17 @@ public class CombustivelService {
 
         // Retorna o DTO de resposta contendo os dados do combustível criado
         return new CombustivelResponseDto(combustivel.getId(), combustivel.getNome(), combustivel.getPrecoLitro());
+    }
+
+    // Método para listar todos os combustíveis disponíveis
+    @Transactional(readOnly = true)
+    public List<CombustivelResponseDto> listarCombustiveis() {
+        // Recupera todos os combustíveis do banco de dados
+        List<Combustivel> combustiveis = combustivelRepository.findAll();
+
+        // Mapeia a lista de entidades Combustivel para uma lista de DTOs de resposta CombustivelResponseDto
+        return combustiveis.stream()
+                .map(combustivel -> new CombustivelResponseDto(combustivel.getId(), combustivel.getNome(), combustivel.getPrecoLitro()))
+                .toList();
     }
 }
