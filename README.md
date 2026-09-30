@@ -71,6 +71,27 @@ Exemplo de criação, usando JSON com ponto decimal:
 
 O nome é obrigatório, não pode conter apenas espaços e tem limite de 100 caracteres. O preço por litro deve ser positivo, com até 7 dígitos inteiros e 3 casas decimais. Os erros tratados pela API usam `ProblemDetail`.
 
+## Bombas
+
+| Método | Rota | Resultado |
+| --- | --- | --- |
+| `POST` | `/bombas` | Cria e retorna a bomba com ID (`201`, `404` se o combustível não existir) |
+| `GET` | `/bombas` | Lista bombas (`200`) |
+| `GET` | `/bombas/{id}` | Consulta por ID (`200` ou `404`) |
+| `PUT` | `/bombas/{id}` | Atualiza nome e combustível (`200`, `404` ou `409`) |
+| `DELETE` | `/bombas/{id}` | Exclui (`204`, `404` ou `409`) |
+
+Exemplo de criação e edição:
+
+```json
+{
+  "nome": "Bomba 1",
+  "combustivelId": 1
+}
+```
+
+O nome é obrigatório e tem até 100 caracteres; `combustivelId` deve ser positivo e apontar para um combustível existente. A resposta inclui `id`, `nome`, `combustivelId` e `combustivelNome`. A troca de combustível é bloqueada com `409` se a bomba tiver abastecimentos registrados. Reenviar o mesmo combustível permite atualizar o nome. A exclusão também retorna `409` quando há abastecimentos associados.
+
 ## Estado do projeto
 
-Até o momento, o CRUD de combustíveis está concluído. Bombas e abastecimentos serão implementados nas próximas etapas do desafio.
+Os CRUDs de combustíveis e bombas estão implementados. O CRUD de abastecimentos é a próxima etapa.
