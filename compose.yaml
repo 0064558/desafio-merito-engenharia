@@ -17,5 +17,25 @@ services:
       timeout: 5s
       retries: 10
 
+  postgres-test:
+    image: postgres:17
+    container_name: posto-gasolina-postgres-test
+    profiles: ["test"]
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_TEST_DB:-posto_gasolina_test}
+      POSTGRES_USER: ${POSTGRES_TEST_USER:-merito_test}
+      POSTGRES_PASSWORD: ${POSTGRES_TEST_PASSWORD:-merito_test_local}
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_TEST_USER:-merito_test} -d ${POSTGRES_TEST_DB:-posto_gasolina_test}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
 volumes:
   postgres_data:
+  postgres_test_data:
