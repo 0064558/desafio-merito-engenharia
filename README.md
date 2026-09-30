@@ -92,6 +92,30 @@ Exemplo de criação e edição:
 
 O nome é obrigatório e tem até 100 caracteres; `combustivelId` deve ser positivo e apontar para um combustível existente. A resposta inclui `id`, `nome`, `combustivelId` e `combustivelNome`. A troca de combustível é bloqueada com `409` se a bomba tiver abastecimentos registrados. Reenviar o mesmo combustível permite atualizar o nome. A exclusão também retorna `409` quando há abastecimentos associados.
 
+## Abastecimentos
+
+| Método | Rota | Resultado |
+| --- | --- | --- |
+| `POST` | `/abastecimentos` | Cria e retorna o abastecimento com ID (`201`, `404` se a bomba não existir) |
+| `GET` | `/abastecimentos` | Lista abastecimentos (`200`) |
+| `GET` | `/abastecimentos/{id}` | Consulta por ID (`200` ou `404`) |
+| `PUT` | `/abastecimentos/{id}` | Atualiza bomba, data e litros (`200` ou `404`) |
+| `DELETE` | `/abastecimentos/{id}` | Exclui (`204` ou `404`) |
+
+Exemplo de criação e edição (no `PUT`, enviar os três campos):
+
+```json
+{
+  "bombaId": 1,
+  "dataAbastecimento": "2026-09-28T19:30:00-03:00",
+  "litros": 20.125
+}
+```
+
+`bombaId` deve ser positivo e existente; `litros` deve ser positivo, com até 7 dígitos inteiros e 3 casas decimais. A data deve incluir o deslocamento de fuso, como `-03:00` ou `Z`. A resposta apresenta a data no horário de São Paulo e inclui bomba, combustível, preço aplicado e valor total. O backend calcula `valorTotal = litros × precoLitroAplicado`, arredondando o total para 2 casas com `HALF_UP`; resultados arredondados para zero são rejeitados com `400`. Preço e total não são campos de entrada: enviá-los retorna `400`.
+
+O preço do combustível é copiado para o abastecimento no cadastro. Alterar o preço cadastrado depois não modifica registros anteriores. Ao corrigir litros na mesma bomba, o preço aplicado é preservado; ao trocar a bomba, utiliza-se o preço atual do combustível da nova bomba. Alterar somente a data mantém preço e total. Como não há histórico de preços por período, transferir um abastecimento antigo para outra bomba pode mudar seu total.
+
 ## Estado do projeto
 
-Os CRUDs de combustíveis e bombas estão implementados. O CRUD de abastecimentos é a próxima etapa.
+Os três CRUDs estão implementados. As próximas etapas são ampliar os testes críticos e configurar a execução automática no GitHub Actions.
