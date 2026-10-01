@@ -48,6 +48,10 @@ Depois, na pasta `posto-de-gasolina-api`, execute:
 
 No macOS/Linux, use `./mvnw test`. O teste de contexto conecta ao banco em `localhost:5435` e o Flyway aplica as mesmas migrações. O container de teste usa o volume `postgres_test_data`, separado do volume de desenvolvimento. Os valores locais padrão estão em `.env.example`; se alterar a senha de teste, defina também `TEST_SPRING_DATASOURCE_PASSWORD` para o processo Maven/IDE.
 
+## Integração contínua
+
+O workflow em `.github/workflows/ci.yml` executa automaticamente a compilação e os testes em pushes e pull requests. Ele usa Java 21 e um PostgreSQL 17 temporário, com o perfil `test`, e roda `./mvnw --batch-mode verify` na pasta da aplicação. O banco do CI usa a porta `5432`; o banco de testes local continua na porta `5435`.
+
 ## Combustíveis
 
 O CRUD de combustíveis está implementado:
