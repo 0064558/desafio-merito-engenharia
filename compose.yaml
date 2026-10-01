@@ -1,4 +1,19 @@
 services:
+  api:
+    build:
+      context: ./posto-de-gasolina-api
+    image: posto-gasolina-api
+    restart: unless-stopped
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${API_PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   postgres:
     image: postgres:17
     container_name: posto-gasolina-postgres
