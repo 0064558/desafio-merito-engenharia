@@ -2,6 +2,17 @@
 
 API REST em Java e Spring Boot para o desafio técnico da Mérito Engenharia. O banco PostgreSQL é criado e versionado pelo Flyway; o Hibernate valida o schema existente.
 
+## API publicada
+
+- [Swagger UI — testar os 15 endpoints](https://desafio-merito-api.onrender.com/swagger-ui/index.html)
+- [URL base da API](https://desafio-merito-api.onrender.com)
+- [Consulta de combustíveis](https://desafio-merito-api.onrender.com/combustiveis)
+- [Contrato OpenAPI em JSON](https://desafio-merito-api.onrender.com/v3/api-docs)
+
+A API está hospedada na Render e utiliza PostgreSQL no Neon, no projeto `posto-gasolina`, região Ohio. O banco é independente do container da API. A rota `/` não possui controller e retorna `404`; para consultar a aplicação, utilize o Swagger ou uma das rotas dos recursos.
+
+No plano gratuito da Render, o serviço suspende após 15 minutos sem tráfego e a primeira requisição seguinte pode levar cerca de um minuto para responder. Aguarde a inicialização antes de testar. [Limitações da Render](https://render.com/docs/free#spinning-down-on-idle).
+
 ## Requisitos
 
 - Docker Desktop com Docker Compose
@@ -86,6 +97,39 @@ docker run --rm --name posto-gasolina-api -p 8080:8080 -e SPRING_DATASOURCE_URL=
 
 A API fica disponível em `http://localhost:8080`. Nesse comando, `host.docker.internal` permite que o container acesse o PostgreSQL pela porta publicada no computador. Para executar API e banco juntos, prefira o Compose descrito acima.
 
+## Deploy na Render com PostgreSQL no Neon
+
+O deploy utiliza o Dockerfile versionado no repositório. Configure um **Web Service** na Render com:
+
+| Campo | Valor |
+| --- | --- |
+| Language / Runtime | `Docker` |
+| Branch | `main` |
+| Region | `Ohio` |
+| Root Directory | `posto-de-gasolina-api` |
+| Dockerfile Path | `./Dockerfile` |
+| Docker Build Context Directory | `.` |
+| Docker Command | Vazio; o Dockerfile define a inicialização |
+| Instance Type | `Free` |
+
+Os caminhos do Dockerfile e do contexto são relativos à Root Directory. O Compose é utilizado para o ambiente local; na publicação, a API conecta ao banco gerenciado no Neon. [Docker na Render](https://render.com/docs/docker), [configuração do diretório raiz](https://render.com/docs/monorepo-support#root-relative-settings).
+
+No Neon, abra **Connect**, selecione o banco e a role e desative **Connection pooling** para obter o hostname da conexão direta, sem `-pooler`. Essa conexão é utilizada tanto pela aplicação quanto pelo Flyway, que executa as migrações na inicialização. O Neon recomenda conexão direta para migrações de schema. [Conexões diretas e com pooling](https://neon.com/docs/connect/connection-pooling).
+
+Cadastre estas variáveis no ambiente do serviço na Render:
+
+| Variável | Valor |
+| --- | --- |
+| `SPRING_DATASOURCE_URL` | `jdbc:postgresql://HOST_NEON:5432/NOME_BANCO?sslmode=require` |
+| `SPRING_DATASOURCE_USERNAME` | Role/usuário do banco no Neon |
+| `SPRING_DATASOURCE_PASSWORD` | Senha da role no Neon |
+
+Substitua `HOST_NEON` e `NOME_BANCO` pelos valores reais apresentados no Neon. O nome do projeto não é necessariamente o nome do banco; o banco padrão pode ser `neondb`. A URL segue o formato JDBC, com usuário e senha nas variáveis separadas, e `sslmode=require` exige criptografia na conexão. Credenciais devem ser cadastradas no ambiente da plataforma e não versionadas. [Configuração do driver PostgreSQL JDBC](https://jdbc.postgresql.org/documentation/use/).
+
+A Render fornece a variável `PORT`. A propriedade `server.port=${PORT:8080}` faz a API utilizar essa porta na publicação e `8080` quando a variável não existe. O Flyway cria e atualiza as tabelas; o Hibernate valida o schema. Não é necessário executar as migrações manualmente.
+
+Além da suspensão do serviço na Render, o Neon Free suspende o compute do banco após 5 minutos de inatividade e o reativa quando recebe uma nova consulta. Os dados permanecem armazenados, mas o primeiro acesso pode sofrer uma demora adicional. A execução local por Compose continua disponível para avaliação. [Scale to Zero do Neon](https://neon.com/docs/introduction/scale-to-zero).
+
 ## Testes
 
 Os testes usam o perfil Spring `test` e um banco PostgreSQL isolado, com container, porta e volume próprios. Na raiz do repositório, inicie-o com:
@@ -108,7 +152,9 @@ O workflow em `.github/workflows/ci.yml` executa automaticamente a compilação 
 
 ## Documentação interativa (Swagger)
 
-Com a API iniciada, acesse:
+Para acessar a versão publicada, utilize o [Swagger UI na Render](https://desafio-merito-api.onrender.com/swagger-ui/index.html).
+
+Com a API iniciada localmente, acesse:
 
 - [Swagger UI](http://localhost:8080/swagger-ui.html): endpoints agrupados por recurso, exemplos de entrada, validações e respostas de sucesso/erro.
 - [OpenAPI JSON](http://localhost:8080/v3/api-docs): contrato gerado a partir dos controllers e DTOs.
@@ -118,6 +164,27 @@ Se alterar `API_PORT`, ajuste a porta nesses endereços. A documentação utiliz
 No Swagger UI, abra uma operação, clique em **Try it out**, preencha os campos e clique em **Execute**. Para testar o fluxo completo, cadastre primeiro um combustível, depois uma bomba usando o ID retornado e, por fim, um abastecimento usando o ID da bomba. As operações executadas pela interface alteram o banco conectado à API.
 
 Os exemplos de IDs devem ser substituídos por registros existentes. Preço aplicado e total aparecem somente nas respostas de abastecimentos, pois são calculados pelo backend. As regras de preservação do preço, arredondamento e bloqueio de exclusões estão descritas nas operações correspondentes. Os erros documentados usam `application/problem+json` (`ProblemDetail`).
+
+### Capturas do Swagger publicado
+
+As capturas mostram os cinco endpoints de cada recurso. Para consultar o contrato atual e executar requisições, utilize o link do Swagger acima.
+
+<details>
+<summary>Ver endpoints de combustíveis, bombas e abastecimentos</summary>
+
+**Combustíveis**
+
+![Swagger publicado: endpoints de combustíveis](docs/images/swagger-combustiveis.png)
+
+**Bombas**
+
+![Swagger publicado: endpoints de bombas](docs/images/swagger-bombas.png)
+
+**Abastecimentos**
+
+![Swagger publicado: endpoints de abastecimentos](docs/images/swagger-abastecimentos.png)
+
+</details>
 
 ## Combustíveis
 
@@ -189,4 +256,13 @@ O preço do combustível é copiado para o abastecimento no cadastro. Alterar o 
 
 ## Estado do projeto
 
-Os três CRUDs, os testes críticos, o workflow do GitHub Actions e a execução da API com PostgreSQL pelo Compose estão implementados. A próxima etapa é hospedar a API na Render e revisar a entrega. O resultado do CI deve ser conferido no GitHub.
+Os três CRUDs, o tratamento de erros, as migrações Flyway, a documentação Swagger/OpenAPI, os testes críticos e a execução por Docker Compose estão implementados. A API está publicada na Render com PostgreSQL no Neon.
+
+Validações realizadas em 01/10/2026:
+
+- Os 13 testes automatizados passaram com Java 21 e PostgreSQL 17 em banco dedicado.
+- A execução local por Compose foi validada com banco inicialmente vazio, incluindo o fluxo combustível → bomba → abastecimento e a persistência após reiniciar e recriar os containers mantendo o volume.
+- Na API publicada, o Swagger UI, o contrato OpenAPI e a listagem de combustíveis responderam com `200`. O contrato disponibiliza 15 operações.
+- O fluxo de cadastro de combustível → bomba → abastecimento foi validado manualmente pelo Swagger publicado.
+
+O workflow do GitHub Actions está configurado; consulte a aba **Actions** do repositório para conferir o resultado da execução mais recente. A revisão final da publicação ainda deve incluir consulta por ID, edição, exclusão, erros esperados e persistência após reiniciar o serviço na Render.
