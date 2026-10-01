@@ -265,15 +265,37 @@ Exemplo de criação e edição (no `PUT`, enviar os três campos):
 
 O preço do combustível é copiado para o abastecimento no cadastro. Alterar o preço cadastrado depois não modifica registros anteriores. Ao corrigir litros na mesma bomba, o preço aplicado é preservado; ao trocar a bomba, utiliza-se o preço atual do combustível da nova bomba. Alterar somente a data mantém preço e total. Como não há histórico de preços por período, transferir um abastecimento antigo para outra bomba pode mudar seu total.
 
-## Estado do projeto
+## Conclusão
 
-Os três CRUDs, o tratamento de erros, as migrações Flyway, a documentação Swagger/OpenAPI, os testes críticos e a execução por Docker Compose estão implementados. A API está publicada na Render com PostgreSQL no Neon.
+Foi desenvolvida uma API REST em Java e Spring Boot para gerenciar combustíveis, bombas e abastecimentos. A solução permite cadastrar, listar, consultar por ID, alterar e excluir os registros, com os relacionamentos armazenados em PostgreSQL. A API pode ser executada localmente pelo Docker Compose ou acessada na publicação da Render, conectada ao Neon.
 
-Validações realizadas em 01/10/2026:
+### Requisitos atendidos
 
-- Os 13 testes automatizados passaram com Java 21 e PostgreSQL 17 em banco dedicado.
-- A execução local por Compose foi validada com banco inicialmente vazio, incluindo o fluxo combustível → bomba → abastecimento e a persistência após reiniciar e recriar os containers mantendo o volume.
-- Na API publicada, o Swagger UI, o contrato OpenAPI e a listagem de combustíveis responderam com `200`. O contrato disponibiliza 15 operações.
-- O fluxo de cadastro de combustível → bomba → abastecimento foi validado manualmente pelo Swagger publicado.
+| Requisito do desafio | Implementação |
+| --- | --- |
+| Aplicação Java organizada com Maven ou Gradle | Java 21, Maven e Maven Wrapper |
+| Operações básicas de tipos de combustível | CRUD com nome e preço por litro |
+| Operações básicas de bombas de combustível | CRUD com nome da bomba e vínculo a um combustível existente |
+| Operações básicas de abastecimentos | CRUD com bomba, data/hora, litragem e valor total calculado pelo backend |
+| Consulta de todos os dados via Swing ou API | API HTTP com listagem e consulta por ID dos três recursos |
+| Relacionamentos corretamente implementados | Mapeamento JPA e chaves estrangeiras entre combustível, bomba e abastecimento |
+| Persistência dos dados | Armazenamento em PostgreSQL |
+| Código comentado e organizado | Separação em controllers, services, repositories, entidades, DTOs e tratamento de exceções, com comentários sobre responsabilidades e regras de negócio |
 
-O workflow do GitHub Actions está configurado; consulte a aba **Actions** do repositório para conferir o resultado da execução mais recente. A revisão final da publicação ainda deve incluir consulta por ID, edição, exclusão, erros esperados e persistência após reiniciar o serviço na Render.
+A API REST atende à alternativa de interface prevista no enunciado. O campo “quantidade em valores” foi representado pelo total do abastecimento, calculado a partir da litragem e do preço aplicado, conforme as decisões de negócio documentadas neste README.
+
+### Adicionais implementados
+
+- **API RESTful:** 15 operações com métodos `GET`, `POST`, `PUT` e `DELETE`, respostas HTTP de sucesso e tratamento centralizado de erros com `ProblemDetail`.
+- **Boas práticas nas camadas:** regras de negócio nos services, persistência com Spring Data JPA, DTOs para entrada e saída e transações nas operações de serviço.
+- **Persistência após reinício:** volume do PostgreSQL no ambiente local e banco gerenciado no Neon para a API publicada.
+- **Migrações com Flyway:** criação e evolução do schema versionadas, com validação pelo Hibernate.
+- **Validações e proteção do histórico:** referências existentes, valores positivos, limites de precisão, bloqueio de exclusões com vínculos e preservação do preço aplicado nos abastecimentos.
+- **Precisão monetária e datas:** cálculo com `BigDecimal`, arredondamento do total com `HALF_UP` e apresentação das datas no fuso de São Paulo.
+- **Testes automatizados:** testes unitários com JUnit e Mockito e testes de integração com Spring Boot Test, MockMvc e PostgreSQL real em banco dedicado.
+- **Integração contínua:** workflow do GitHub Actions configurado para compilar e executar os testes em pushes e pull requests.
+- **Containers:** Dockerfile com build em etapas e Docker Compose para executar API e PostgreSQL.
+- **Documentação interativa:** Swagger UI e contrato OpenAPI com exemplos, validações, respostas de erro e regras de negócio.
+- **Publicação:** API hospedada na Render com PostgreSQL no Neon e links públicos para avaliação.
+
+Na validação realizada em 01/10/2026, os 13 testes automatizados passaram com Java 21 e PostgreSQL 17. A execução local por Compose foi verificada com banco inicialmente vazio e preservação dos dados após reiniciar e recriar os containers mantendo o volume. Na publicação, o Swagger, o contrato OpenAPI e a listagem de combustíveis responderam com `200`, e o fluxo de cadastro de combustível → bomba → abastecimento foi validado manualmente pelo Swagger.
