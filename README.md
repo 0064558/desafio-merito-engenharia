@@ -132,7 +132,18 @@ Além da suspensão do serviço na Render, o Neon Free suspende o compute do ban
 
 ## Testes
 
-Os testes usam o perfil Spring `test` e um banco PostgreSQL isolado, com container, porta e volume próprios. Na raiz do repositório, inicie-o com:
+Os testes utilizam **JUnit Jupiter** para definir os casos e verificar os resultados, **Mockito** para simular os repositories nos testes unitários e **Spring Boot Test / MockMvc** para os testes de integração.
+
+| Classe | Tipo e ferramentas | Comportamento verificado |
+| --- | --- | --- |
+| `BombaServiceTest` | Unitário, JUnit e Mockito, sem banco | Referências inexistentes, troca de combustível e bloqueios quando há histórico |
+| `BombaIntegrationTest` | Integração, JUnit, Spring Boot Test e PostgreSQL real | Cadastro, consulta, edição, exclusão e proteção do histórico |
+| `AbastecimentoIntegrationTest` | Integração, JUnit, Spring Boot Test, MockMvc e PostgreSQL real | Fluxo HTTP, cálculo e arredondamento, preservação do preço, validações e conflitos |
+| `PostoDeGasolinaApiApplicationTests` | Contexto, JUnit e Spring Boot Test com PostgreSQL real | Inicialização da aplicação, incluindo a configuração do banco |
+
+O Mockito mantém os testes unitários isolados das dependências de persistência. O MockMvc exercita os endpoints dentro do contexto de testes do Spring; os testes de integração persistem os dados em PostgreSQL real. As dependências de testes são fornecidas pelos starters de teste do Spring Boot declarados no `pom.xml`.
+
+Os testes de integração e de contexto usam o perfil Spring `test` e um banco PostgreSQL isolado, com container, porta e volume próprios. Na raiz do repositório, inicie-o com:
 
 ```powershell
 docker compose --profile test up -d postgres-test
